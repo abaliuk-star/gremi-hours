@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Gremi Personal — Учёт часов</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Gremi Personal — Табель годин</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -31,29 +34,28 @@
 
     .header-right { display: flex; align-items: center; gap: 8px; }
     
-    /* Переключатель языков */
     .lang-switcher { display: flex; background: var(--card-bg); border: 1px solid var(--gremi-border); border-radius: 14px; padding: 2px; }
-    .lang-btn { background: transparent; border: none; font-size: 11px; font-weight: 700; padding: 4px 7px; border-radius: 10px; cursor: pointer; color: var(--gremi-gray-text); }
+    .lang-btn { background: transparent; border: none; font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 10px; cursor: pointer; color: var(--gremi-gray-text); }
     .lang-btn.active { background: var(--gremi-orange); color: var(--gremi-black); }
 
     .user-pill { background: var(--card-bg); border: 1px solid var(--gremi-border); padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--gremi-dark); }
 
-    /* Переключатель месяца */
+    /* Навигация по месяцам */
     .month-nav { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); border-radius: 16px; padding: 8px 14px; margin-bottom: 12px; border: 1px solid var(--gremi-border); box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
     .nav-btn { background: var(--gremi-gray-light); border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; font-weight: 700; color: var(--gremi-black); cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .nav-btn:active { background: var(--gremi-border); }
     .month-title { font-size: 16px; font-weight: 700; text-transform: capitalize; }
 
-    /* Карточка сводки */
+    /* Сводка за месяц */
     .summary-card { background: linear-gradient(135deg, #1E1E1E 0%, #121212 100%); color: #FFFFFF; border-radius: 18px; padding: 16px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     .summary-label { font-size: 12px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
     .summary-main { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 6px; }
     .summary-hours { font-size: 32px; font-weight: 800; line-height: 1; color: #FFFFFF; }
-    .summary-hours span { font-size: 18px; font-weight: 600; color: var(--gremi-orange); }
+    .summary-hours span.unit { font-size: 18px; font-weight: 600; color: var(--gremi-orange); margin-left: 2px; }
     .summary-stats { display: flex; gap: 14px; font-size: 13px; color: #D1D5DB; }
     .summary-stat-val { font-weight: 700; color: #FFFFFF; }
 
-    /* Календарный табель */
+    /* Сетка календаря */
     .calendar-container { background: var(--card-bg); border-radius: 18px; padding: 12px; border: 1px solid var(--gremi-border); box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
     .weekdays-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 8px; }
     .weekday-label { font-size: 11px; font-weight: 700; color: var(--gremi-gray-text); text-transform: uppercase; padding: 4px 0; }
@@ -82,7 +84,7 @@
     .day-rejected .day-status-dot { background: #DC2626; }
     .day-today { outline: 2px solid var(--gremi-orange); }
 
-    /* Модальное окно детализации смены */
+    /* Модальное окно */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); justify-content: center; align-items: flex-end; z-index: 1000; }
     .modal { background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 22px 20px 30px 20px; box-shadow: 0 -8px 30px rgba(0,0,0,0.15); animation: slideUp 0.22s ease-out; }
     @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -101,17 +103,15 @@
     input, textarea { width: 100%; padding: 12px 14px; border: 1.5px solid var(--gremi-border); border-radius: 12px; font-size: 15px; outline: none; margin-bottom: 14px; background: var(--gremi-gray-light); color: var(--gremi-black); }
     input:focus, textarea:focus { border-color: var(--gremi-orange); background: #FFFFFF; }
 
-    .btn-submit { width: 100%; background: var(--gremi-orange); color: var(--gremi-black); font-size: 15px; font-weight: 700; border: none; padding: 14px; border-radius: 14px; cursor: pointer; transition: background 0.15s; }
+    .btn-submit { width: 100%; background: var(--gremi-orange); color: var(--gremi-black); font-size: 15px; font-weight: 700; border: none; padding: 14px; border-radius: 14px; cursor: pointer; }
     .btn-submit:active { background: var(--gremi-orange-dark); }
     .btn-cancel { width: 100%; background: transparent; color: var(--gremi-gray-text); font-size: 14px; font-weight: 600; border: none; padding: 10px; margin-top: 6px; cursor: pointer; }
 
-    #login-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-    .login-box { background: white; border-radius: 20px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
+    #error-screen { display: none; text-align: center; padding: 40px 20px; }
   </style>
 </head>
 <body>
 
-  <!-- Шапка -->
   <div class="header">
     <div class="brand-logo">
       <div class="logo-bars">
@@ -122,40 +122,46 @@
     </div>
     <div class="header-right">
       <div class="lang-switcher">
-        <button class="lang-btn" onclick="setLanguage('uk')">UA</button>
-        <button class="lang-btn" onclick="setLanguage('ru')">RU</button>
-        <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+        <button class="lang-btn" id="btn-lang-uk" onclick="setLanguage('uk')">UA</button>
+        <button class="lang-btn" id="btn-lang-ru" onclick="setLanguage('ru')">RU</button>
+        <button class="lang-btn" id="btn-lang-en" onclick="setLanguage('en')">EN</button>
       </div>
       <div class="user-pill" id="user-display">ID: ...</div>
     </div>
   </div>
 
-  <!-- Переключатель месяца -->
-  <div class="month-nav">
-    <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
-    <div class="month-title" id="month-label">...</div>
-    <button class="nav-btn" onclick="changeMonth(1)" id="btn-next-month">›</button>
-  </div>
+  <div id="main-content">
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="month-title" id="month-label">...</div>
+      <button class="nav-btn" onclick="changeMonth(1)" id="btn-next-month">›</button>
+    </div>
 
-  <!-- Сводка за месяц -->
-  <div class="summary-card">
-    <div class="summary-label" id="i18n-summary-label">Отработано за месяц</div>
-    <div class="summary-main">
-      <div class="summary-hours" id="sum-hours">0<span id="i18n-hours-unit"> ч</span></div>
-      <div class="summary-stats">
-        <div><span id="i18n-shifts-label">Смен</span>: <span class="summary-stat-val" id="sum-shifts">0</span></div>
-        <div><span id="i18n-pending-label">На сверке</span>: <span class="summary-stat-val" id="sum-pending">0</span></div>
+    <div class="summary-card">
+      <div class="summary-label" data-i18n="summary">Відпрацьовано за місяць</div>
+      <div class="summary-main">
+        <div class="summary-hours">
+          <span id="sum-hours-num">0</span><span class="unit" id="sum-hours-unit"> год</span>
+        </div>
+        <div class="summary-stats">
+          <div><span data-i18n="shifts">Змін</span>: <span class="summary-stat-val" id="sum-shifts">0</span></div>
+          <div><span data-i18n="pending">На звірці</span>: <span class="summary-stat-val" id="sum-pending">0</span></div>
+        </div>
       </div>
+    </div>
+
+    <div class="calendar-container">
+      <div class="weekdays-grid" id="weekdays-row"></div>
+      <div class="days-grid" id="calendar-days"></div>
     </div>
   </div>
 
-  <!-- Календарная сетка -->
-  <div class="calendar-container">
-    <div class="weekdays-grid" id="weekdays-row"></div>
-    <div class="days-grid" id="calendar-days"></div>
+  <div id="error-screen">
+    <div style="font-size: 40px; margin-bottom: 12px;">🔒</div>
+    <div style="font-weight: 800; font-size: 18px; margin-bottom: 8px;" data-i18n="errTitle">Доступ обмежено</div>
+    <div style="font-size: 14px; color: var(--gremi-gray-text); line-height: 1.5;" id="error-desc" data-i18n="errDesc">Будь ласка, відкрийте табель через головне меню Telegram-бота.</div>
   </div>
 
-  <!-- Окно подачи сверки -->
   <div class="modal-overlay" id="dispute-modal">
     <div class="modal">
       <div class="modal-head">
@@ -170,214 +176,192 @@
       <div id="modal-deadline-box"></div>
 
       <div id="dispute-form-content">
-        <label id="i18n-claim-hours-label">Фактически отработанные часы:</label>
+        <label data-i18n="formHours">Фактично відпрацьовані години:</label>
         <input type="number" step="0.25" id="claim-hours-input" placeholder="10.75">
 
         <label>
-          <span id="i18n-claim-comment-label">Причина несоответствия</span>
-          <span class="optional-hint" id="i18n-optional-hint">(необязательно)</span>
+          <span data-i18n="formComment">Причина невідповідності</span>
+          <span class="optional-hint" data-i18n="formHint">(необов'язково)</span>
         </label>
         <textarea id="claim-comment-input" rows="3"></textarea>
 
-        <button class="btn-submit" id="i18n-submit-btn" onclick="submitDispute()">Подать на сверку</button>
+        <button class="btn-submit" data-i18n="formSubmit" onclick="submitDispute()">Подати на звірку</button>
       </div>
 
-      <button class="btn-cancel" id="i18n-close-btn" onclick="closeModal()">Закрыть</button>
-    </div>
-  </div>
-
-  <!-- Вход по ID (если открыто без параметров) -->
-  <div id="login-modal">
-    <div class="login-box">
-      <div style="font-weight: 800; font-size: 18px; margin-bottom: 8px;" id="i18n-login-title">Вход в табель</div>
-      <div style="font-size: 13px; color: var(--gremi-gray-text); margin-bottom: 16px;" id="i18n-login-sub">Введите ваш табельный номер:</div>
-      <input type="number" id="manual-emp-id" placeholder="Например: 60071180">
-      <button class="btn-submit" id="i18n-login-btn" onclick="submitManualLogin()">Продолжить</button>
+      <button class="btn-cancel" data-i18n="formClose" onclick="closeModal()">Закрити</button>
     </div>
   </div>
 
   <script>
-    // -------------------------------------------------------------------------
-    // ВСТАВЬТЕ СЮДА ВАШУ ССЫЛКУ ИЗ GOOGLE APPS SCRIPT:
+    // -------------------------------------------------------------
+    // ВСТАВЬТЕ СЮДА ВАШ URL ИЗ GOOGLE APPS SCRIPT:
     const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwFX-orIRXaWza0b5GfO7oJJC6VaASoBqBR1cOs7HfvS2Q2NkNWvV5lJmbv7cvoa_s/exec";
-    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------
 
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.expand(); tg.ready(); }
 
     const translations = {
       uk: {
-        summaryLabel: "Відпрацьовано за місяць",
-        hoursUnit: " год",
-        shiftsLabel: "Змін",
-        pendingLabel: "На звірці",
+        summary: "Відпрацьовано за місяць",
+        unit: " год",
+        shifts: "Змін",
+        pending: "На звірці",
         weekdaysShort: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"],
         weekdaysFull: ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"],
         months: ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"],
-        monthsGenitive: ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"],
+        monthsGen: ["січня", "лютого", "березня", "квітня", "травня", "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"],
         statusPending: "На перевірці",
         statusApproved: "Оновлено",
         statusRejected: "Відхилено",
         inSystem: "В системі",
         feedbackTitle: "Відповідь підприємства:",
         deadlineTitle: "Прийом заявок закрито",
-        deadlineDesc: (month, nextMonth) => `Звірка годин за ${month} приймалася суворо до 10.${nextMonth}. Якщо у вас є термінове питання, зверніться напряму до координатора.`,
-        hoursLabel: "Фактично відпрацьовані години:",
-        commentLabel: "Причина невідповідності",
-        optionalHint: "(необов'язково)",
-        commentPlaceholder: "Вкажіть коментар за бажанням...",
-        submitBtn: "Подати на звірку",
-        closeBtn: "Закрити",
-        loginTitle: "Вхід у табель",
-        loginSub: "Введіть ваш табельний номер:",
-        loginBtn: "Продовжити",
-        alertEnterId: "Введіть табельний номер!",
-        alertUserNotFound: "Дані співробітника не знайдено в базі",
-        alertEnterHours: "Вкажіть коректну кількість годин!",
+        deadlineDesc: (m, nm) => `Звірка годин за ${m} приймалася суворо до 10.${nm}. Якщо у вас є термінове питання, зверніться напряму до координатора.`,
+        formHours: "Фактично відпрацьовані години:",
+        formComment: "Причина невідповідності",
+        formHint: "(необов'язково)",
+        formPlaceholder: "Вкажіть коментар за бажанням...",
+        formSubmit: "Подати на звірку",
+        formClose: "Закрити",
+        errTitle: "Доступ обмежено",
+        errDesc: "Будь ласка, відкрийте табель через головне меню Telegram-бота.",
+        errNotFound: "Співробітника не знайдено в базі. Зверніться до координатора.",
+        alertHours: "Вкажіть коректну кількість годин!",
         alertSubmitOk: "Заявку на звірку надіслано підприємству!",
         alertSubmitErr: "Помилка надсилання заявки"
       },
       ru: {
-        summaryLabel: "Отработано за месяц",
-        hoursUnit: " ч",
-        shiftsLabel: "Смен",
-        pendingLabel: "На сверке",
+        summary: "Отработано за месяц",
+        unit: " ч",
+        shifts: "Смен",
+        pending: "На сверке",
         weekdaysShort: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
         weekdaysFull: ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
         months: ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
-        monthsGenitive: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+        monthsGen: ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
         statusPending: "На проверке",
         statusApproved: "Обновлено",
         statusRejected: "Отклонено",
         inSystem: "В системе",
         feedbackTitle: "Ответ предприятия:",
         deadlineTitle: "Приём заявок закрыт",
-        deadlineDesc: (month, nextMonth) => `Сверка часов за ${month} принималась строго до 10.${nextMonth}. Если у вас есть срочный вопрос, обратитесь напрямую к координатору.`,
-        hoursLabel: "Фактически отработанные часы:",
-        commentLabel: "Причина несоответствия",
-        optionalHint: "(необязательно)",
-        commentPlaceholder: "Укажите причину при желании...",
-        submitBtn: "Подать на сверку",
-        closeBtn: "Закрыть",
-        loginTitle: "Вход в табель",
-        loginSub: "Введите ваш табельный номер:",
-        loginBtn: "Продолжить",
-        alertEnterId: "Введите табельный номер!",
-        alertUserNotFound: "Данные сотрудника не найдены в базе",
-        alertEnterHours: "Укажите корректное количество часов!",
+        deadlineDesc: (m, nm) => `Сверка часов за ${m} принималась строго до 10.${nm}. Если у вас есть срочный вопрос, обратитесь напрямую к координатору.`,
+        formHours: "Фактически отработанные часы:",
+        formComment: "Причина несоответствия",
+        formHint: "(необязательно)",
+        formPlaceholder: "Укажите причину при желании...",
+        formSubmit: "Подать на сверку",
+        formClose: "Закрыть",
+        errTitle: "Доступ ограничен",
+        errDesc: "Пожалуйста, откройте табель через главное меню Telegram-бота.",
+        errNotFound: "Сотрудник не найден в базе. Обратитесь к координатору.",
+        alertHours: "Укажите корректное количество часов!",
         alertSubmitOk: "Заявка на сверку отправлена предприятию!",
         alertSubmitErr: "Ошибка отправки заявки"
       },
       en: {
-        summaryLabel: "Worked this month",
-        hoursUnit: " h",
-        shiftsLabel: "Shifts",
-        pendingLabel: "On review",
+        summary: "Worked this month",
+        unit: " h",
+        shifts: "Shifts",
+        pending: "On review",
         weekdaysShort: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         weekdaysFull: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
         months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-        monthsGenitive: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        monthsGen: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         statusPending: "Pending",
         statusApproved: "Updated",
         statusRejected: "Rejected",
         inSystem: "In system",
         feedbackTitle: "Company feedback:",
         deadlineTitle: "Submissions closed",
-        deadlineDesc: (month, nextMonth) => `Dispute submission for ${month} was accepted until 10.${nextMonth}. If you have an urgent inquiry, please contact your coordinator directly.`,
-        hoursLabel: "Actual hours worked:",
-        commentLabel: "Discrepancy reason",
-        optionalHint: "(optional)",
-        commentPlaceholder: "Add an optional explanation...",
-        submitBtn: "Submit for review",
-        closeBtn: "Close",
-        loginTitle: "Attendance Sheet",
-        loginSub: "Enter your Employee ID:",
-        loginBtn: "Continue",
-        alertEnterId: "Please enter Employee ID!",
-        alertUserNotFound: "Employee not found in database",
-        alertEnterHours: "Please specify valid hours!",
-        alertSubmitOk: "Review request submitted to the enterprise!",
+        deadlineDesc: (m, nm) => `Dispute submission for ${m} was accepted until 10.${nm}. If you have an urgent inquiry, please contact your coordinator directly.`,
+        formHours: "Actual hours worked:",
+        formComment: "Discrepancy reason",
+        formHint: "(optional)",
+        formPlaceholder: "Add an optional explanation...",
+        formSubmit: "Submit for review",
+        formClose: "Close",
+        errTitle: "Access restricted",
+        errDesc: "Please open timesheet via Telegram bot menu.",
+        errNotFound: "Employee not found in database. Please contact coordinator.",
+        alertHours: "Please specify valid hours!",
+        alertSubmitOk: "Review request submitted to company!",
         alertSubmitErr: "Submission error"
       }
     };
 
-    let currentLang = 'uk';
+    // Базовый язык — украинский, или сохранённый в памяти телефона
+    let currentLang = localStorage.getItem("gremi_user_lang") || "uk";
     let allDaysData = [];
     let employeeData = null;
     let selectedDay = null;
 
-    const today = new Date();
-    let currentYear = today.getFullYear();
-    let currentMonth = today.getMonth();
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
 
     window.addEventListener("DOMContentLoaded", () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      const langParam = (urlParams.get("lang") || localStorage.getItem("gremi_lang") || "").toLowerCase();
-      if (translations[langParam]) {
-        currentLang = langParam;
-      }
       applyLanguageUI();
 
-      const empFromUrl = urlParams.get("emp_id") || tg?.initDataUnsafe?.start_param;
-      const savedEmpId = localStorage.getItem("gremi_emp_id");
+      const urlParams = new URLSearchParams(window.location.search);
+      const empId = urlParams.get("emp_id") || tg?.initDataUnsafe?.start_param;
 
-      if (empFromUrl) {
-        localStorage.setItem("gremi_emp_id", empFromUrl);
-        fetchEmployeeHours(empFromUrl);
-      } else if (savedEmpId) {
-        fetchEmployeeHours(savedEmpId);
+      if (empId) {
+        fetchEmployeeHours(empId);
       } else {
-        document.getElementById("login-modal").style.display = "flex";
+        document.getElementById("main-content").style.display = "none";
+        document.getElementById("error-screen").style.display = "block";
       }
     });
 
     function setLanguage(lang) {
       if (!translations[lang]) return;
       currentLang = lang;
-      localStorage.setItem("gremi_lang", lang);
+      localStorage.setItem("gremi_user_lang", lang);
       applyLanguageUI();
-      if (employeeData) renderCalendar();
+      renderCalendar();
+      if (selectedDay) openDayModal(selectedDay);
     }
 
     function applyLanguageUI() {
       const t = translations[currentLang];
-      
-      document.querySelectorAll(".lang-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.textContent.toLowerCase() === (currentLang === 'uk' ? 'ua' : currentLang));
+
+      // Переключение активного состояния кнопок в шапке
+      document.querySelectorAll(".lang-btn").forEach(btn => btn.classList.remove("active"));
+      const activeBtn = document.getElementById(`btn-lang-${currentLang}`);
+      if (activeBtn) activeBtn.classList.add("active");
+
+      // Безопасный перевод всех элементов с атрибутом data-i18n
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (t[key]) el.textContent = t[key];
       });
 
-      document.getElementById("i18n-summary-label").textContent = t.summaryLabel;
-      document.getElementById("i18n-hours-unit").textContent = t.hoursUnit;
-      document.getElementById("i18n-shifts-label").textContent = t.shiftsLabel;
-      document.getElementById("i18n-pending-label").textContent = t.pendingLabel;
-      document.getElementById("i18n-claim-hours-label").textContent = t.hoursLabel;
-      document.getElementById("i18n-claim-comment-label").textContent = t.commentLabel;
-      document.getElementById("i18n-optional-hint").textContent = t.optionalHint;
-      document.getElementById("claim-comment-input").placeholder = t.commentPlaceholder;
-      document.getElementById("i18n-submit-btn").textContent = t.submitBtn;
-      document.getElementById("i18n-close-btn").textContent = t.closeBtn;
-      document.getElementById("i18n-login-title").textContent = t.loginTitle;
-      document.getElementById("i18n-login-sub").textContent = t.loginSub;
-      document.getElementById("i18n-login-btn").textContent = t.loginBtn;
+      // Перевод единицы измерения часов
+      const unitEl = document.getElementById("sum-hours-unit");
+      if (unitEl) unitEl.textContent = t.unit;
 
+      // Плейсхолдер комментария
+      const commentInput = document.getElementById("claim-comment-input");
+      if (commentInput) commentInput.placeholder = t.formPlaceholder;
+
+      // Дни недели
       const wdRow = document.getElementById("weekdays-row");
-      wdRow.innerHTML = "";
-      t.weekdaysShort.forEach(w => {
-        const div = document.createElement("div");
-        div.className = "weekday-label";
-        div.textContent = w;
-        wdRow.appendChild(div);
-      });
-    }
+      if (wdRow) {
+        wdRow.innerHTML = "";
+        t.weekdaysShort.forEach(w => {
+          const div = document.createElement("div");
+          div.className = "weekday-label";
+          div.textContent = w;
+          wdRow.appendChild(div);
+        });
+      }
 
-    function submitManualLogin() {
-      const t = translations[currentLang];
-      const val = document.getElementById("manual-emp-id").value.trim();
-      if (!val) return alert(t.alertEnterId);
-      localStorage.setItem("gremi_emp_id", val);
-      document.getElementById("login-modal").style.display = "none";
-      fetchEmployeeHours(val);
+      // Заголовок месяца
+      const monthTitle = document.getElementById("month-label");
+      if (monthTitle) {
+        monthTitle.textContent = `${t.months[currentMonth]} ${currentYear}`;
+      }
     }
 
     async function fetchEmployeeHours(empId) {
@@ -386,15 +370,29 @@
         const res = await fetch(`${GOOGLE_API_URL}?emp_id=${empId}`);
         const result = await res.json();
         
-        if (result.status === "error") throw new Error(result.message || t.alertUserNotFound);
+        if (result.status === "error" || !result.days) {
+          throw new Error(result.message || t.errNotFound);
+        }
         
         employeeData = result;
         allDaysData = employeeData.days || [];
         
         document.getElementById("user-display").textContent = `${employeeData.name.split(' ')[0]} (#${employeeData.employee_id})`;
+        
+        // Автоматически открываем самый свежий месяц из базы
+        if (allDaysData.length > 0) {
+          const lastDateStr = allDaysData[allDaysData.length - 1].date;
+          const parts = lastDateStr.split("-");
+          currentYear = parseInt(parts[0], 10);
+          currentMonth = parseInt(parts[1], 10) - 1;
+        }
+
+        applyLanguageUI();
         renderCalendar();
       } catch (err) {
-        alert(err.message);
+        document.getElementById("main-content").style.display = "none";
+        document.getElementById("error-screen").style.display = "block";
+        document.getElementById("error-desc").textContent = err.message;
       }
     }
 
@@ -407,6 +405,7 @@
         currentMonth = 11;
         currentYear--;
       }
+      applyLanguageUI();
       renderCalendar();
     }
 
@@ -420,10 +419,6 @@
       const t = translations[currentLang];
       document.getElementById("month-label").textContent = `${t.months[currentMonth]} ${currentYear}`;
 
-      const isCurrentOrFuture = (currentYear > today.getFullYear()) || (currentYear === today.getFullYear() && currentMonth >= today.getMonth());
-      document.getElementById("btn-next-month").style.opacity = isCurrentOrFuture ? "0.3" : "1";
-      document.getElementById("btn-next-month").disabled = isCurrentOrFuture;
-
       const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
@@ -431,6 +426,7 @@
       if (startingDayIndex === -1) startingDayIndex = 6;
 
       const container = document.getElementById("calendar-days");
+      if (!container) return;
       container.innerHTML = "";
 
       const monthPrefix = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
@@ -453,7 +449,8 @@
         }
       });
 
-      document.getElementById("sum-hours").innerHTML = `${Math.round(totalMonthHours * 100) / 100}<span>${t.hoursUnit}</span>`;
+      document.getElementById("sum-hours-num").textContent = Math.round(totalMonthHours * 100) / 100;
+      document.getElementById("sum-hours-unit").textContent = t.unit;
       document.getElementById("sum-shifts").textContent = shiftsCount;
       document.getElementById("sum-pending").textContent = pendingCount;
 
@@ -463,6 +460,7 @@
         container.appendChild(emptyCell);
       }
 
+      const todayObj = new Date();
       for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
         const dateStr = `${monthPrefix}-${String(dayNum).padStart(2, '0')}`;
         const dayRecord = monthDaysMap[dateStr] || { date: dateStr, hours: 0, dispute: null };
@@ -470,7 +468,7 @@
         const cell = document.createElement("div");
         cell.className = "day-cell";
 
-        const isToday = (today.getFullYear() === currentYear && today.getMonth() === currentMonth && today.getDate() === dayNum);
+        const isToday = (todayObj.getFullYear() === currentYear && todayObj.getMonth() === currentMonth && todayObj.getDate() === dayNum);
         if (isToday) cell.classList.add("day-today");
 
         if (dayRecord.dispute) {
@@ -488,7 +486,7 @@
             <span class="day-num">${dayNum}</span>
             <span class="day-status-dot"></span>
           </div>
-          <div class="cell-hours">${dayRecord.hours > 0 ? dayRecord.hours + t.hoursUnit : '—'}</div>
+          <div class="cell-hours">${dayRecord.hours > 0 ? dayRecord.hours + t.unit : '—'}</div>
         `;
 
         cell.onclick = () => openDayModal(dayRecord);
@@ -501,28 +499,30 @@
       selectedDay = dayRecord;
       const dateObj = new Date(dayRecord.date);
       
-      document.getElementById("modal-date-title").textContent = `${dateObj.getDate()} ${t.monthsGenitive[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-      document.getElementById("modal-weekday-sub").textContent = `${t.weekdaysFull[dateObj.getDay()]} • ${t.inSystem}: ${dayRecord.hours}${t.hoursUnit}`;
+      document.getElementById("modal-date-title").textContent = `${dateObj.getDate()} ${t.monthsGen[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+      document.getElementById("modal-weekday-sub").textContent = `${t.weekdaysFull[dateObj.getDay()]} • ${t.inSystem}: ${dayRecord.hours}${t.unit}`;
 
       const badge = document.getElementById("modal-status-badge");
       const feedbackBox = document.getElementById("modal-feedback-box");
       const deadlineBox = document.getElementById("modal-deadline-box");
       const formContent = document.getElementById("dispute-form-content");
 
-      badge.innerHTML = "";
-      feedbackBox.innerHTML = "";
-      deadlineBox.innerHTML = "";
+      if (badge) badge.innerHTML = "";
+      if (feedbackBox) feedbackBox.innerHTML = "";
+      if (deadlineBox) deadlineBox.innerHTML = "";
 
       if (dayRecord.dispute) {
+        let badgeHtml = "";
         if (dayRecord.dispute.status === "pending") {
-          badge.innerHTML = `<span class="pill-status" style="background:#FEF9C3; color:#854D0E;">${t.statusPending}</span>`;
+          badgeHtml = `<span class="pill-status" style="background:#FEF9C3; color:#854D0E;">${t.statusPending}</span>`;
         } else if (dayRecord.dispute.status === "approved") {
-          badge.innerHTML = `<span class="pill-status" style="background:#EFF6FF; color:#1E40AF;">${t.statusApproved}</span>`;
+          badgeHtml = `<span class="pill-status" style="background:#EFF6FF; color:#1E40AF;">${t.statusApproved}</span>`;
         } else if (dayRecord.dispute.status === "rejected") {
-          badge.innerHTML = `<span class="pill-status" style="background:#FEE2E2; color:#991B1B;">${t.statusRejected}</span>`;
+          badgeHtml = `<span class="pill-status" style="background:#FEE2E2; color:#991B1B;">${t.statusRejected}</span>`;
         }
+        if (badge) badge.innerHTML = badgeHtml;
 
-        if (dayRecord.dispute.admin_note) {
+        if (dayRecord.dispute.admin_note && feedbackBox) {
           feedbackBox.innerHTML = `<div class="feedback-notice"><strong>${t.feedbackTitle}</strong><br>${dayRecord.dispute.admin_note}</div>`;
         }
       }
@@ -531,25 +531,32 @@
 
       if (!allowed) {
         const nextMonthNum = dateObj.getMonth() === 11 ? 1 : dateObj.getMonth() + 2;
-        deadlineBox.innerHTML = `
-          <div class="deadline-notice">
-            <strong>${t.deadlineTitle}</strong><br>
-            ${t.deadlineDesc(t.monthsGenitive[dateObj.getMonth()], String(nextMonthNum).padStart(2, '0'))}
-          </div>
-        `;
-        formContent.style.display = "none";
+        if (deadlineBox) {
+          deadlineBox.innerHTML = `
+            <div class="deadline-notice">
+              <strong>${t.deadlineTitle}</strong><br>
+              ${t.deadlineDesc(t.monthsGen[dateObj.getMonth()], String(nextMonthNum).padStart(2, '0'))}
+            </div>
+          `;
+        }
+        if (formContent) formContent.style.display = "none";
       } else {
-        formContent.style.display = "block";
-        document.getElementById("claim-hours-input").value = dayRecord.dispute ? dayRecord.dispute.claimed_hours : (dayRecord.hours === 0 ? "10.75" : dayRecord.hours);
-        document.getElementById("claim-comment-input").value = dayRecord.dispute ? dayRecord.dispute.comment : "";
+        if (formContent) formContent.style.display = "block";
+        const hInput = document.getElementById("claim-hours-input");
+        const cInput = document.getElementById("claim-comment-input");
+        if (hInput) hInput.value = dayRecord.dispute ? dayRecord.dispute.claimed_hours : (dayRecord.hours === 0 ? "10.75" : dayRecord.hours);
+        if (cInput) cInput.value = dayRecord.dispute ? dayRecord.dispute.comment : "";
       }
 
-      document.getElementById("dispute-modal").style.display = "flex";
+      const modalEl = document.getElementById("dispute-modal");
+      if (modalEl) modalEl.style.display = "flex";
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("light");
     }
 
     function closeModal() {
-      document.getElementById("dispute-modal").style.display = "none";
+      const modalEl = document.getElementById("dispute-modal");
+      if (modalEl) modalEl.style.display = "none";
+      selectedDay = null;
     }
 
     async function submitDispute() {
@@ -557,7 +564,7 @@
       const hoursVal = parseFloat(document.getElementById("claim-hours-input").value);
       const commentVal = document.getElementById("claim-comment-input").value.trim();
 
-      if (isNaN(hoursVal) || hoursVal <= 0) return alert(t.alertEnterHours);
+      if (isNaN(hoursVal) || hoursVal <= 0) return alert(t.alertHours);
 
       const payload = {
         employee_id: employeeData.employee_id,
